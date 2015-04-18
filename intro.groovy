@@ -1,17 +1,42 @@
 #!/usr/bin/env groovy
-import groovy.time.*
+@Grab( 'com.bloidonia:groovy-stream:0.8.1' )
+import groovy.stream.Stream
+import groovy.transform.CompileStatic
+import java.text.NumberFormat
 
-def formatter = java.text.NumberFormat.numberInstance
-def timeStart = new Date()
+class LTFDemo {
 
-(0..10000).collect({
-  ((double) (it / 1609.344)).round(2)
-}).unique().findAll({
-  it * 100 % 25 == 0
-}).each({
-  println formatter.format(it) + " Mi"
-})
+  NumberFormat formatter = NumberFormat.numberInstance
 
-def timeStop = new Date()
-TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
-println duration
+  Closure convertToMiles = { ((double)it / (double)1609.344).round(2) }
+  Closure isQuarterMile = { ((int)it * (int)100 % (int)25) == 0 }
+  Closure formatDistance = { println formatter.format(it) + " Mi" }
+
+  @CompileStatic
+  List nonStreaming() {
+    (0..10000).collect( convertToMiles )
+              .unique()
+              .findAll( isQuarterMile )
+              .collect( formatDistance )
+  }
+
+  @CompileStatic
+  List streaming() {
+    Stream.from(0..10000)
+          .map( convertToMiles )
+          .unique()
+          .findAll( isQuarterMile )
+          .collect( formatDistance )
+  }
+}
+
+def d = new LTFDemo()
+bench(d, "nonStreaming", "Non-Streaming")
+bench(d, "streaming", "Streaming")
+
+def bench(clazz, method, name){
+	def a=  System.currentTimeMillis()
+	clazz."$method"()
+	def a2=  System.currentTimeMillis()
+	println "$name took " + (a2-a) + " ms"
+}
