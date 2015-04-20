@@ -4,17 +4,19 @@ import groovy.stream.Stream
 import groovy.transform.CompileStatic
 import java.text.NumberFormat
 
+
 class LTFDemo {
 
   NumberFormat formatter = NumberFormat.numberInstance
 
   Closure convertToMiles = { ((double)it / (double)1609.344).round(2) }
-  Closure isQuarterMile = { ((int)it * (int)100 % (int)25) == 0 }
+  Closure isQuarterMile = { ((int)it * 100 % 25) == 0 }
   Closure formatDistance = { println formatter.format(it) + " Mi" }
-
+  
   @CompileStatic
   List nonStreaming() {
-    (0..10000).collect( convertToMiles )
+    List miles = (0..10000)
+    miles.collect( convertToMiles )
               .unique()
               .findAll( isQuarterMile )
               .collect( formatDistance )

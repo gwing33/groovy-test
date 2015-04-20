@@ -4,6 +4,7 @@
 
 import groovy.transform.CompileStatic
 
+
 class demo {
 
 	def fib_dynamic(i) {
